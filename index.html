@@ -10,6 +10,16 @@
         body {
             font-family: 'Inter', sans-serif;
         }
+        .color-swatch {
+            transition: transform 0.2s ease-in-out;
+        }
+        .color-swatch:hover {
+            transform: scale(1.1);
+        }
+        .color-swatch.selected {
+            outline: 2px solid white;
+            outline-offset: 2px;
+        }
         /* Custom scrollbar for better aesthetics */
         ::-webkit-scrollbar {
             width: 8px;
@@ -40,8 +50,6 @@
 
     <!-- Main App Content -->
     <div id="app-content" class="container mx-auto p-4 md:p-8 hidden">
-        
-        <!-- Header with User Info and Sign Out -->
         <div class="flex justify-between items-center mb-8">
             <div>
                 <p class="text-gray-400 text-sm">Signed in as:</p>
@@ -49,7 +57,7 @@
             </div>
             <button id="sign-out-btn" class="bg-gray-700 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-300">Sign Out</button>
         </div>
-
+        
         <!-- Clock Display -->
         <div class="text-center mb-8">
             <h1 class="text-2xl md:text-4xl font-bold text-cyan-400">Medication Tracker</h1>
@@ -58,124 +66,23 @@
         </div>
 
         <!-- Main Content Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-            
-            <!-- Hinata's Card -->
-            <div id="hinata-card" class="bg-gray-800 rounded-2xl shadow-lg p-6 border border-gray-700">
-                <h2 class="text-3xl font-bold text-center mb-6 text-pink-400">Hinata</h2>
-                <form id="hinata-form" class="space-y-4">
-                    <div>
-                        <label for="hinata-what" class="block text-sm font-medium text-gray-300">What</label>
-                        <input type="text" id="hinata-what" required class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-pink-500 focus:border-pink-500" placeholder="e.g., Tylenol">
-                    </div>
-                    <div>
-                        <label for="hinata-how-much" class="block text-sm font-medium text-gray-300">How Much (ml)</label>
-                        <input type="number" id="hinata-how-much" required class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-pink-500 focus:border-pink-500" placeholder="e.g., 5">
-                    </div>
-                    <div>
-                        <label for="hinata-when" class="block text-sm font-medium text-gray-300">When</label>
-                        <input type="time" id="hinata-when" required class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-pink-500 focus:border-pink-500">
-                    </div>
-                    <button type="submit" class="w-full bg-pink-600 hover:bg-pink-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300 ease-in-out transform hover:scale-105">Log Medication</button>
-                </form>
-                <div class="mt-8">
-                    <div class="flex justify-between items-center">
-                        <h3 class="text-xl font-semibold text-gray-200">Log History</h3>
-                        <button id="clear-hinata" class="text-sm bg-gray-700 hover:bg-red-600 text-white font-semibold py-1 px-3 rounded-md transition duration-300">Clear Log</button>
-                    </div>
-                    <ul id="hinata-log" class="mt-4 space-y-3 max-h-60 overflow-y-auto pr-2"></ul>
-                </div>
-            </div>
+        <div id="cards-container" class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- Dynamic cards go here -->
+        </div>
 
-            <!-- Neiji's Card -->
-            <div id="neiji-card" class="bg-gray-800 rounded-2xl shadow-lg p-6 border border-gray-700">
-                <h2 class="text-3xl font-bold text-center mb-6 text-blue-400">Neiji</h2>
-                <form id="neiji-form" class="space-y-4">
-                    <div>
-                        <label for="neiji-what" class="block text-sm font-medium text-gray-300">What</label>
-                        <input type="text" id="neiji-what" required class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="e.g., Advil">
-                    </div>
-                    <div>
-                        <label for="neiji-how-much" class="block text-sm font-medium text-gray-300">How Much (ml)</label>
-                        <input type="number" id="neiji-how-much" required class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="e.g., 5">
-                    </div>
-                    <div>
-                        <label for="neiji-when" class="block text-sm font-medium text-gray-300">When</label>
-                        <input type="time" id="neiji-when" required class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                    </div>
-                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300 ease-in-out transform hover:scale-105">Log Medication</button>
-                </form>
-                <div class="mt-8">
-                     <div class="flex justify-between items-center">
-                        <h3 class="text-xl font-semibold text-gray-200">Log History</h3>
-                        <button id="clear-neiji" class="text-sm bg-gray-700 hover:bg-red-600 text-white font-semibold py-1 px-3 rounded-md transition duration-300">Clear Log</button>
-                    </div>
-                    <ul id="neiji-log" class="mt-4 space-y-3 max-h-60 overflow-y-auto pr-2"></ul>
-                </div>
-            </div>
-
-            <!-- Ariasy's Card -->
-            <div id="ariasy-card" class="bg-gray-800 rounded-2xl shadow-lg p-6 border border-gray-700">
-                <h2 class="text-3xl font-bold text-center mb-6 text-yellow-400">Ariasy</h2>
-                <form id="ariasy-form" class="space-y-4">
-                    <div>
-                        <label for="ariasy-what" class="block text-sm font-medium text-gray-300">What</label>
-                        <input type="text" id="ariasy-what" required class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-yellow-500 focus:border-yellow-500" placeholder="e.g., Tylenol">
-                    </div>
-                    <div>
-                        <label for="ariasy-how-much" class="block text-sm font-medium text-gray-300">How Much (ml)</label>
-                        <input type="number" id="ariasy-how-much" required class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-yellow-500 focus:border-yellow-500" placeholder="e.g., 5">
-                    </div>
-                    <div>
-                        <label for="ariasy-when" class="block text-sm font-medium text-gray-300">When</label>
-                        <input type="time" id="ariasy-when" required class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-yellow-500 focus:border-yellow-500">
-                    </div>
-                    <button type="submit" class="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300 ease-in-out transform hover:scale-105">Log Medication</button>
-                </form>
-                <div class="mt-8">
-                    <div class="flex justify-between items-center">
-                        <h3 class="text-xl font-semibold text-gray-200">Log History</h3>
-                        <button id="clear-ariasy" class="text-sm bg-gray-700 hover:bg-red-600 text-white font-semibold py-1 px-3 rounded-md transition duration-300">Clear Log</button>
-                    </div>
-                    <ul id="ariasy-log" class="mt-4 space-y-3 max-h-60 overflow-y-auto pr-2"></ul>
-                </div>
-            </div>
-
-            <!-- Elvin's Card -->
-            <div id="elvin-card" class="bg-gray-800 rounded-2xl shadow-lg p-6 border border-gray-700">
-                <h2 class="text-3xl font-bold text-center mb-6 text-green-400">Elvin</h2>
-                <form id="elvin-form" class="space-y-4">
-                    <div>
-                        <label for="elvin-what" class="block text-sm font-medium text-gray-300">What</label>
-                        <input type="text" id="elvin-what" required class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-green-500 focus:border-green-500" placeholder="e.g., Advil">
-                    </div>
-                    <div>
-                        <label for="elvin-how-much" class="block text-sm font-medium text-gray-300">How Much (ml)</label>
-                        <input type="number" id="elvin-how-much" required class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-green-500 focus:border-green-500" placeholder="e.g., 5">
-                    </div>
-                    <div>
-                        <label for="elvin-when" class="block text-sm font-medium text-gray-300">When</label>
-                        <input type="time" id="elvin-when" required class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-green-500 focus:border-green-500">
-                    </div>
-                    <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300 ease-in-out transform hover:scale-105">Log Medication</button>
-                </form>
-                <div class="mt-8">
-                     <div class="flex justify-between items-center">
-                        <h3 class="text-xl font-semibold text-gray-200">Log History</h3>
-                        <button id="clear-elvin" class="text-sm bg-gray-700 hover:bg-red-600 text-white font-semibold py-1 px-3 rounded-md transition duration-300">Clear Log</button>
-                    </div>
-                    <ul id="elvin-log" class="mt-4 space-y-3 max-h-60 overflow-y-auto pr-2"></ul>
-                </div>
-            </div>
-
+        <!-- Add New Card Button -->
+        <div class="mt-8 text-center">
+            <button id="add-card-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300 ease-in-out transform hover:scale-105">
+                + Add New Card
+            </button>
         </div>
     </div>
 
     <!-- Confirmation Modal -->
     <div id="confirmation-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 hidden z-50 transition-opacity duration-300">
         <div class="bg-gray-800 rounded-2xl shadow-lg p-6 border border-gray-700 w-full max-w-sm text-center transform transition-all duration-300 scale-95">
-            <h3 class="text-xl font-bold text-white mb-4">Are you sure?</h3>
-            <p class="text-gray-300 mb-6">This will permanently delete all log entries for <span id="modal-child-name" class="font-bold"></span>. This action cannot be undone.</p>
+            <h3 id="modal-title" class="text-xl font-bold text-white mb-4">Are you sure?</h3>
+            <p id="modal-text" class="text-gray-300 mb-6"></p>
             <div class="flex justify-center gap-4">
                 <button id="modal-cancel" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded-lg transition duration-300">Cancel</button>
                 <button id="modal-confirm" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg transition duration-300">Confirm</button>
@@ -184,198 +91,254 @@
     </div>
 
     <script type="module">
-        // Import Firebase modules
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot, query, getDocs, deleteDoc, doc, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, addDoc, doc, updateDoc, deleteDoc, query, orderBy, getDocs, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // --- App Configuration ---
-        const children = ['hinata', 'neiji', 'ariasy', 'elvin'];
-        const childColors = { hinata: 'pink', neiji: 'blue', ariasy: 'yellow', elvin: 'green' };
+        // --- GLOBAL STATE & CONFIG ---
+        let state = {
+            children: [],
+            modal: { isOpen: false, type: null, targetId: null, message: '' },
+            listeners: {} // To store unsubscribe functions for Firestore listeners
+        };
 
-        // --- Firebase Initialization ---
+        const availableColors = {
+            pink: { text: 'text-pink-400', bg: 'bg-pink-600', hoverBg: 'hover:bg-pink-700', ring: 'focus:ring-pink-500', border: 'border-pink-500' },
+            blue: { text: 'text-blue-400', bg: 'bg-blue-600', hoverBg: 'hover:bg-blue-700', ring: 'focus:ring-blue-500', border: 'border-blue-500' },
+            yellow: { text: 'text-yellow-400', bg: 'bg-yellow-600', hoverBg: 'hover:bg-yellow-700', ring: 'focus:ring-yellow-500', border: 'border-yellow-500' },
+            green: { text: 'text-green-400', bg: 'bg-green-600', hoverBg: 'hover:bg-green-700', ring: 'focus:ring-green-500', border: 'border-green-500' },
+            purple: { text: 'text-purple-400', bg: 'bg-purple-600', hoverBg: 'hover:bg-purple-700', ring: 'focus:ring-purple-500', border: 'border-purple-500' },
+            indigo: { text: 'text-indigo-400', bg: 'bg-indigo-600', hoverBg: 'hover:bg-indigo-700', ring: 'focus:ring-indigo-500', border: 'border-indigo-500' },
+        };
+
+        // --- FIREBASE SETUP ---
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
         const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
         let app, db, auth, userId;
-
         try {
             app = initializeApp(firebaseConfig);
             db = getFirestore(app);
             auth = getAuth(app);
         } catch (e) {
-            console.error("Error initializing Firebase:", e);
+            console.error("Firebase initialization failed:", e);
+            document.body.innerHTML = '<h1>Error initializing application. Please check console.</h1>';
         }
 
-        // --- UI Elements ---
+        // --- UI ELEMENTS ---
         const loginScreen = document.getElementById('login-screen');
         const appContent = document.getElementById('app-content');
         const signInBtn = document.getElementById('sign-in-btn');
         const signOutBtn = document.getElementById('sign-out-btn');
         const userNameDisplay = document.getElementById('user-name');
-        
-        const modal = document.getElementById('confirmation-modal');
-        const modalContent = modal.querySelector('div');
-        const modalChildNameSpan = document.getElementById('modal-child-name');
+        const cardsContainer = document.getElementById('cards-container');
+        const addCardBtn = document.getElementById('add-card-btn');
+        const modalEl = document.getElementById('confirmation-modal');
+        const modalContent = modalEl.querySelector('div');
+        const modalText = document.getElementById('modal-text');
         const modalCancelBtn = document.getElementById('modal-cancel');
         const modalConfirmBtn = document.getElementById('modal-confirm');
-        let childToClear = null;
-        let unsubscribeListeners = []; // To hold our Firestore listeners
 
-        // --- Clock Functionality ---
+        // --- CLOCK ---
         const clockElement = document.getElementById('clock');
-        function updateClock() {
-            const now = new Date();
+        const clockInterval = setInterval(() => {
             const options = { timeZone: 'America/New_York', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true };
-            clockElement.textContent = now.toLocaleTimeString('en-US', options);
-        }
-        setInterval(updateClock, 1000);
-        updateClock();
+            clockElement.textContent = new Date().toLocaleTimeString('en-US', options);
+        }, 1000);
 
-        // --- Authentication Logic ---
+        // --- AUTHENTICATION ---
         const provider = new GoogleAuthProvider();
+        signInBtn.addEventListener('click', () => signInWithPopup(auth, provider).catch(err => console.error("Sign-in error", err)));
+        signOutBtn.addEventListener('click', () => signOut(auth));
 
-        signInBtn.addEventListener('click', () => {
-            signInWithPopup(auth, provider).catch(error => {
-                console.error("Authentication failed:", error);
-            });
-        });
-
-        signOutBtn.addEventListener('click', () => {
-            signOut(auth);
-        });
-
-        // --- Core Application Logic ---
-        onAuthStateChanged(auth, (user) => {
+        onAuthStateChanged(auth, user => {
             if (user) {
                 // User is signed in
                 userId = user.uid;
                 userNameDisplay.textContent = user.displayName || user.email;
-                loginScreen.classList.add('hidden');
                 appContent.classList.remove('hidden');
-                
-                // Set up listeners for each child's data
-                children.forEach(childName => {
-                    setupRealtimeListener(childName);
-                    const form = document.getElementById(`${childName}-form`);
-                    // Ensure we don't add multiple listeners
-                    form.replaceWith(form.cloneNode(true));
-                    document.getElementById(`${childName}-form`).addEventListener('submit', (e) => handleFormSubmit(e, childName));
-                });
+                loginScreen.classList.add('hidden');
+                initializeAppForUser();
             } else {
                 // User is signed out
                 userId = null;
-                loginScreen.classList.remove('hidden');
                 appContent.classList.add('hidden');
-                
-                // Detach all Firestore listeners to prevent errors
-                unsubscribeListeners.forEach(unsubscribe => unsubscribe());
-                unsubscribeListeners = [];
-                // Clear UI
-                children.forEach(childName => renderLogs(childName, []));
+                loginScreen.classList.remove('hidden');
+                cleanupListenersAndUI();
             }
         });
 
-        function setupRealtimeListener(childName) {
-            const logsCollectionRef = collection(db, `artifacts/${appId}/users/${userId}/${childName}-med-logs`);
-            const q = query(logsCollectionRef, orderBy("timestamp", "desc"));
-
-            const unsubscribe = onSnapshot(q, (snapshot) => {
-                const logs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                renderLogs(childName, logs);
-            }, (error) => {
-                console.error(`Error fetching logs for ${childName}:`, error);
-            });
-            unsubscribeListeners.push(unsubscribe); // Store the unsubscribe function
-        }
-
-        function renderLogs(childName, logs) {
-            const logUl = document.getElementById(`${childName}-log`);
-            logUl.innerHTML = '';
-            logs.forEach(log => {
-                const li = document.createElement('li');
-                li.className = 'bg-gray-700 p-3 rounded-lg border-l-4';
-                const color = childColors[childName];
-                const borderClasses = { pink: 'border-pink-500', blue: 'border-blue-500', yellow: 'border-yellow-500', green: 'border-green-500' };
-                li.classList.add(borderClasses[color]);
-                li.innerHTML = `
-                    <div>
-                        <p class="font-bold text-lg">${log.what} - ${log.howMuch}ml</p>
-                        <p class="text-sm text-gray-400">Given at: ${log.when}</p>
-                    </div>`;
-                logUl.appendChild(li);
+        // --- APP INITIALIZATION & CLEANUP ---
+        function initializeAppForUser() {
+            const childrenRef = collection(db, 'users', userId, 'children');
+            state.listeners['children'] = onSnapshot(query(childrenRef), snapshot => {
+                state.children = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                render();
             });
         }
 
-        async function handleFormSubmit(event, childName) {
-            event.preventDefault();
-            if (!userId) return;
+        function cleanupListenersAndUI() {
+            Object.values(state.listeners).forEach(unsubscribe => unsubscribe());
+            state.listeners = {};
+            state.children = [];
+            cardsContainer.innerHTML = '';
+        }
 
-            const what = document.getElementById(`${childName}-what`).value;
-            const howMuch = document.getElementById(`${childName}-how-much`).value;
-            const when = document.getElementById(`${childName}-when`).value;
+        // --- DYNAMIC CARD CREATION ---
+        function createCardHTML(child) {
+            const colorTheme = availableColors[child.color];
+            const isEditing = child.isEditing;
+            const colorSwatchesHTML = Object.keys(availableColors).map(colorKey => `
+                <div class="color-swatch w-8 h-8 rounded-full cursor-pointer ${availableColors[colorKey].bg.replace('bg-','border-2 border-')} ${child.color === colorKey ? 'selected' : ''}" data-color="${colorKey}" style="background-color: #${{'pink':'ec4899','blue':'3b82f6','yellow':'eab308','green':'22c55e','purple':'a855f7','indigo':'6366f1'}[colorKey]}"></div>`).join('');
 
-            if (!what || !howMuch || !when) return;
+            return `<div class="bg-gray-800 rounded-2xl shadow-lg p-6 border border-gray-700 flex flex-col" id="${child.id}">
+                <div class="relative">
+                    <div class="absolute top-0 right-0 flex gap-2">
+                        <button data-action="edit" class="text-gray-400 hover:text-white"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg></button>
+                        <button data-action="delete" class="text-gray-400 hover:text-red-500"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button>
+                    </div>
+                    ${isEditing ? `<input type="text" value="${child.name}" class="text-3xl font-bold text-center w-full bg-gray-700 rounded-md p-1 mb-2 ${colorTheme.text}"><div class="flex justify-center gap-3 my-4">${colorSwatchesHTML}</div><button data-action="save" class="w-full ${colorTheme.bg} ${colorTheme.hoverBg} text-white font-bold py-2 px-4 rounded-lg">Save Changes</button>` : `<h2 class="text-3xl font-bold text-center mb-6 ${colorTheme.text}">${child.name}</h2>`}
+                </div>
+                ${!isEditing ? `<form class="space-y-4"><input type="hidden" name="childId" value="${child.id}"><div><label class="block text-sm font-medium text-gray-300">What</label><input type="text" name="what" required class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none ${colorTheme.ring} ${colorTheme.border}" placeholder="e.g., Tylenol"></div><div><label class="block text-sm font-medium text-gray-300">How Much (ml)</label><input type="number" name="howMuch" required class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none ${colorTheme.ring} ${colorTheme.border}" placeholder="e.g., 5"></div><div><label class="block text-sm font-medium text-gray-300">When</label><div class="flex items-center gap-2 mt-1"><input type="time" name="when" required class="block w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none ${colorTheme.ring} ${colorTheme.border}"><button type="button" data-action="setNow" class="bg-cyan-600 hover:bg-cyan-700 text-white font-semibold py-2 px-4 rounded-md text-sm whitespace-nowrap">Now</button></div></div><button type="submit" class="w-full ${colorTheme.bg} ${colorTheme.hoverBg} text-white font-bold py-2 px-4 rounded-lg transform hover:scale-105">Log Medication</button></form><div class="mt-8 flex-grow flex flex-col"><div class="flex justify-between items-center"><h3 class="text-xl font-semibold text-gray-200">Log History</h3><button data-action="clearLog" class="text-sm bg-gray-700 hover:bg-red-600 text-white font-semibold py-1 px-3 rounded-md">Clear Log</button></div><ul class="log-list mt-4 space-y-3 max-h-60 overflow-y-auto pr-2 flex-grow"></ul></div>` : ''}
+            </div>`;
+        }
+
+        // --- RENDER & EVENT HANDLING ---
+        function render() {
+            cardsContainer.innerHTML = '';
+            state.children.forEach(child => {
+                cardsContainer.insertAdjacentHTML('beforeend', createCardHTML(child));
+                const cardElement = document.getElementById(child.id);
+                if (!child.isEditing) {
+                    // Subscribe to log updates for this card
+                    if (state.listeners[child.id]) state.listeners[child.id](); // Unsubscribe from old listener first
+                    const logsRef = collection(db, 'users', userId, 'logs', child.id, 'entries');
+                    state.listeners[child.id] = onSnapshot(query(logsRef, orderBy('timestamp', 'desc')), snapshot => {
+                        const logs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                        renderLogs(child.id, logs);
+                    });
+                }
+                cardElement.addEventListener('click', handleCardAction);
+                cardElement.querySelector('form')?.addEventListener('submit', handleFormSubmit);
+            });
+        }
+        
+        async function handleCardAction(e) {
+            const actionTarget = e.target.closest('button, .color-swatch');
+            if (!actionTarget) return;
+            const action = actionTarget.dataset.action;
+            const childId = e.currentTarget.id;
+            const child = state.children.find(c => c.id === childId);
+
+            if (!action) {
+                const color = actionTarget.dataset.color;
+                if(color && child.isEditing) {
+                     document.querySelectorAll(`#${childId} .color-swatch`).forEach(el => el.classList.remove('selected'));
+                     actionTarget.classList.add('selected');
+                     const childRef = doc(db, 'users', userId, 'children', childId);
+                     await updateDoc(childRef, { color: color });
+                }
+                return;
+            }
             
-            const [hours, minutes] = when.split(':');
-            const date = new Date();
-            date.setHours(hours);
-            date.setMinutes(minutes);
-
-            const newLog = { what, howMuch, when, timestamp: date };
-
-            try {
-                const logsCollectionRef = collection(db, `artifacts/${appId}/users/${userId}/${childName}-med-logs`);
-                await addDoc(logsCollectionRef, newLog);
-                event.target.reset();
-            } catch (error) {
-                console.error("Error adding document: ", error);
+            switch(action) {
+                case 'edit':
+                    await updateDoc(doc(db, 'users', userId, 'children', childId), { isEditing: true });
+                    break;
+                case 'delete':
+                    showModal('deleteCard', childId, `This will permanently delete the card for <strong class="${availableColors[child.color].text}">${child.name}</strong> and all its logs. This cannot be undone.`);
+                    break;
+                case 'save':
+                    const nameInput = document.querySelector(`#${childId} input[type="text"]`);
+                    const newName = nameInput.value.trim() || child.name;
+                    await updateDoc(doc(db, 'users', userId, 'children', childId), { name: newName, isEditing: false });
+                    break;
+                case 'clearLog':
+                    showModal('clearLog', childId, `This will permanently delete all log entries for <strong class="${availableColors[child.color].text}">${child.name}</strong>.`);
+                    break;
+                case 'setNow':
+                    const whenInput = document.querySelector(`#${childId} input[name="when"]`);
+                    const now = new Date();
+                    whenInput.value = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+                    break;
             }
         }
         
-        // --- Modal Confirmation Logic ---
-        function showClearConfirmation(childName) {
-            childToClear = childName;
-            const capitalizedName = childName.charAt(0).toUpperCase() + childName.slice(1);
-            modalChildNameSpan.textContent = capitalizedName;
-            const color = childColors[childName];
-            const textClasses = { pink: 'text-pink-400', blue: 'text-blue-400', yellow: 'text-yellow-400', green: 'text-green-400' };
-            modalChildNameSpan.className = `font-bold ${textClasses[color]}`;
-            modal.classList.remove('hidden');
-            setTimeout(() => {
-                modal.style.opacity = '1';
-                modalContent.style.transform = 'scale(1)';
-            }, 10);
+        async function handleFormSubmit(e) {
+            e.preventDefault();
+            const formData = new FormData(e.currentTarget);
+            const childId = formData.get('childId');
+            const now = new Date();
+            const newLog = {
+                what: formData.get('what'),
+                howMuch: formData.get('howMuch'),
+                when: formData.get('when'),
+                date: now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+                timestamp: now
+            };
+            const logsRef = collection(db, 'users', userId, 'logs', childId, 'entries');
+            await addDoc(logsRef, newLog);
+            e.currentTarget.reset();
         }
 
-        function hideClearConfirmation() {
-            modal.style.opacity = '0';
+        function renderLogs(childId, logs) {
+            const logUl = document.querySelector(`#${childId} .log-list`);
+            if (!logUl) return;
+            logUl.innerHTML = '';
+            const childColor = state.children.find(c => c.id === childId)?.color || 'pink';
+            logs.forEach(log => {
+                logUl.innerHTML += `<li class="bg-gray-700 p-3 rounded-lg border-l-4 ${availableColors[childColor].border}"><div><p class="font-bold text-lg">${log.what} - ${log.howMuch}ml</p><p class="text-sm text-gray-400">${log.date} at ${log.when}</p></div></li>`;
+            });
+        }
+
+        // --- GLOBAL ACTIONS ---
+        addCardBtn.addEventListener('click', async () => {
+            const newName = prompt("Enter the new card's name:", "New Child");
+            if (newName && newName.trim()) {
+                const colorKeys = Object.keys(availableColors);
+                const randomColor = colorKeys[Math.floor(Math.random() * colorKeys.length)];
+                await addDoc(collection(db, 'users', userId, 'children'), {
+                    name: newName.trim(),
+                    color: randomColor,
+                    isEditing: false
+                });
+            }
+        });
+
+        // --- MODAL LOGIC ---
+        function showModal(type, targetId, message) {
+            state.modal = { isOpen: true, type, targetId, message };
+            modalText.innerHTML = state.modal.message;
+            modalEl.classList.remove('hidden');
+            setTimeout(() => { modalEl.style.opacity = '1'; modalContent.style.transform = 'scale(1)'; }, 10);
+        }
+
+        function hideModal() {
+            modalEl.style.opacity = '0';
             modalContent.style.transform = 'scale(0.95)';
             setTimeout(() => {
-                modal.classList.add('hidden');
-                childToClear = null;
+                modalEl.classList.add('hidden');
+                state.modal = { isOpen: false, type: null, targetId: null, message: '' };
             }, 300);
         }
 
-        async function confirmClear() {
-            if (childToClear && userId) {
-                const logsCollectionRef = collection(db, `artifacts/${appId}/users/${userId}/${childToClear}-med-logs`);
-                try {
-                    const querySnapshot = await getDocs(logsCollectionref);
-                    const deletePromises = querySnapshot.docs.map(docSnapshot => deleteDoc(doc(db, logsCollectionRef.path, docSnapshot.id)));
-                    await Promise.all(deletePromises);
-                } catch (error) {
-                    console.error(`Error deleting logs for ${childToClear}: `, error);
-                }
+        async function confirmModalAction() {
+            const { type, targetId } = state.modal;
+            const batch = writeBatch(db);
+            if (type === 'clearLog' || type === 'deleteCard') {
+                const logsRef = collection(db, 'users', userId, 'logs', targetId, 'entries');
+                const logsSnapshot = await getDocs(logsRef);
+                logsSnapshot.forEach(doc => batch.delete(doc.ref));
             }
-            hideClearConfirmation();
+            if (type === 'deleteCard') {
+                const childRef = doc(db, 'users', userId, 'children', targetId);
+                batch.delete(childRef);
+            }
+            await batch.commit();
+            hideModal();
         }
-
-        // --- Final Event Listener Setup ---
-        modalCancelBtn.addEventListener('click', hideClearConfirmation);
-        modalConfirmBtn.addEventListener('click', confirmClear);
-        children.forEach(child => {
-            document.getElementById(`clear-${child}`).addEventListener('click', () => showClearConfirmation(child));
-        });
+        
+        modalCancelBtn.addEventListener('click', hideModal);
+        modalConfirmBtn.addEventListener('click', confirmModalAction);
     </script>
 </body>
 </html>
