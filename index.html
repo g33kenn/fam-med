@@ -154,7 +154,12 @@
 
         // --- AUTHENTICATION ---
         const provider = new GoogleAuthProvider();
-        signInBtn.addEventListener('click', () => signInWithPopup(auth, provider).catch(err => console.error("Sign-in error", err)));
+        signInBtn.addEventListener('click', () => {
+            signInWithPopup(auth, provider).catch(err => {
+                console.error("Sign-in error:", err);
+                alert(`Could not sign in with Google.\n\nThis may be due to a configuration issue. Please ensure this website's domain (${window.location.hostname}) is added to the list of authorized domains in your Firebase project's authentication settings.\n\nError: ${err.message}`);
+            });
+        });
         signOutBtn.addEventListener('click', () => signOut(auth));
 
         onAuthStateChanged(auth, user => {
