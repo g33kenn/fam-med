@@ -62,7 +62,7 @@
         <div class="text-center mb-8">
             <h1 class="text-2xl md:text-4xl font-bold text-cyan-400">Medication Tracker</h1>
             <p class="text-lg md:text-2xl text-gray-300 mt-2" id="clock"></p>
-            <p class="text-sm text-gray-500">Current Time (EST/EDT)</p>
+            <p class="text-sm text-gray-500">Data syncs automatically from the cloud.</p>
         </div>
 
         <!-- Main Content Grid -->
@@ -147,10 +147,9 @@
 
         // --- CLOCK ---
         const clockElement = document.getElementById('clock');
-        const clockInterval = setInterval(() => {
-            const options = { timeZone: 'America/New_York', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true };
-            clockElement.textContent = new Date().toLocaleTimeString('en-US', options);
-        }, 1000);
+        const pageLoadTime = new Date();
+        const clockOptions = { timeZone: 'America/New_York', hour: 'numeric', minute: '2-digit', hour12: true };
+        clockElement.textContent = `Last refreshed: ${pageLoadTime.toLocaleTimeString('en-US', clockOptions)}`;
 
         // --- AUTHENTICATION ---
         const provider = new GoogleAuthProvider();
@@ -212,6 +211,44 @@
                 </div>
                 ${!isEditing ? `<form class="space-y-4"><input type="hidden" name="childId" value="${child.id}"><div><label class="block text-sm font-medium text-gray-300">What</label><input type="text" name="what" required class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none ${colorTheme.ring} ${colorTheme.border}" placeholder="e.g., Tylenol"></div><div><label class="block text-sm font-medium text-gray-300">How Much (ml)</label><input type="number" name="howMuch" required class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none ${colorTheme.ring} ${colorTheme.border}" placeholder="e.g., 5"></div><div><label class="block text-sm font-medium text-gray-300">When</label><div class="flex items-center gap-2 mt-1"><input type="time" name="when" required class="block w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none ${colorTheme.ring} ${colorTheme.border}"><button type="button" data-action="setNow" class="bg-cyan-600 hover:bg-cyan-700 text-white font-semibold py-2 px-4 rounded-md text-sm whitespace-nowrap">Now</button></div></div><button type="submit" class="w-full ${colorTheme.bg} ${colorTheme.hoverBg} text-white font-bold py-2 px-4 rounded-lg transform hover:scale-105">Log Medication</button></form><div class="mt-8 flex-grow flex flex-col"><div class="flex justify-between items-center"><h3 class="text-xl font-semibold text-gray-200">Log History</h3><button data-action="clearLog" class="text-sm bg-gray-700 hover:bg-red-600 text-white font-semibold py-1 px-3 rounded-md">Clear Log</button></div><ul class="log-list mt-4 space-y-3 max-h-60 overflow-y-auto pr-2 flex-grow"></ul></div>` : ''}
             </div>`;
+        }
+
+        function timeAgo(timestamp) {
+            if (!timestamp || !timestamp.toDate) {
+                return '';
+            }
+            const now = new Date();
+            const past = timestamp.toDate();
+            const seconds = Math.floor((now - past) / 1000);
+
+            let interval = seconds / 31536000; // year
+            if (interval > 1) {
+                const value = Math.floor(interval);
+                return `${value} year${value > 1 ? 's' : ''} ago`;
+            }
+            interval = seconds / 2592000; // month
+            if (interval > 1) {
+                const value = Math.floor(interval);
+                return `${value} month${value > 1 ? 's' : ''} ago`;
+            }
+            interval = seconds / 86400; // day
+            if (interval > 1) {
+                const value = Math.floor(interval);
+                if (value === 1) return "Yesterday";
+                return `${value} days ago`;
+            }
+            interval = seconds / 3600; // hour
+            if (interval > 1) {
+                const value = Math.floor(interval);
+                return `${value} hour${value > 1 ? 's' : ''} ago`;
+            }
+            interval = seconds / 60; // minute
+            if (interval > 1) {
+                const value = Math.floor(interval);
+                return `${value} minute${value > 1 ? 's' : ''} ago`;
+            }
+            if (seconds < 10) return "Just now";
+            return `${Math.floor(seconds)} seconds ago`;
         }
 
         // --- RENDER & EVENT HANDLING ---
@@ -284,7 +321,7 @@
                 what: formData.get('what'),
                 howMuch: formData.get('howMuch'),
                 when: formData.get('when'),
-                date: now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+                date: now.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
                 timestamp: now
             };
             const logsRef = collection(db, 'users', userId, 'logs', childId, 'entries');
@@ -298,7 +335,7 @@
             logUl.innerHTML = '';
             const childColor = state.children.find(c => c.id === childId)?.color || 'pink';
             logs.forEach(log => {
-                logUl.innerHTML += `<li class="bg-gray-700 p-3 rounded-lg border-l-4 ${availableColors[childColor].border}"><div><p class="font-bold text-lg">${log.what} - ${log.howMuch}ml</p><p class="text-sm text-gray-400">${log.date} at ${log.when}</p></div></li>`;
+                logUl.innerHTML += `<li class="bg-gray-700 p-3 rounded-lg border-l-4 ${availableColors[childColor].border}"><div><p class="font-bold text-lg">${log.what} - ${log.howMuch}ml</p><p class="text-sm text-gray-400">${log.date} at ${log.when} <span class="text-gray-500 ml-2">(${timeAgo(log.timestamp)})</span></p></div></li>`;
             });
         }
 
