@@ -209,7 +209,7 @@
                     </div>
                     ${isEditing ? `<input type="text" value="${child.name}" class="text-3xl font-bold text-center w-full bg-gray-700 rounded-md p-1 mb-2 ${colorTheme.text}"><div class="flex justify-center gap-3 my-4">${colorSwatchesHTML}</div><button data-action="save" class="w-full ${colorTheme.bg} ${colorTheme.hoverBg} text-white font-bold py-2 px-4 rounded-lg">Save Changes</button>` : `<h2 class="text-3xl font-bold text-center mb-6 ${colorTheme.text}">${child.name}</h2>`}
                 </div>
-                ${!isEditing ? `<form class="space-y-4"><input type="hidden" name="childId" value="${child.id}"><div><label class="block text-sm font-medium text-gray-300">Medication</label><input type="text" name="what" required class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none ${colorTheme.ring} ${colorTheme.border}" placeholder="e.g., Tylenol"></div><div><label class="block text-sm font-medium text-gray-300">Quantity</label><input type="number" name="howMuch" required class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none ${colorTheme.ring} ${colorTheme.border}" placeholder="e.g., 5"></div><div><label class="block text-sm font-medium text-gray-300">When?</label><div class="flex items-center gap-2 mt-1"><input type="time" name="when" required class="block w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none ${colorTheme.ring} ${colorTheme.border}"><button type="button" data-action="setNow" class="bg-cyan-600 hover:bg-cyan-700 text-white font-semibold py-2 px-4 rounded-md text-sm whitespace-nowrap">Now</button></div></div><button type="submit" class="w-full ${colorTheme.bg} ${colorTheme.hoverBg} text-white font-bold py-2 px-4 rounded-lg transform hover:scale-105">Log Medication</button></form><div class="mt-8 flex-grow flex flex-col"><div class="flex justify-between items-center"><h3 class="text-xl font-semibold text-gray-200">Log History</h3><button data-action="clearLog" class="text-sm bg-gray-700 hover:bg-red-600 text-white font-semibold py-1 px-3 rounded-md">Clear Log</button></div><ul class="log-list mt-4 space-y-3 max-h-60 overflow-y-auto pr-2 flex-grow"></ul></div>` : ''}
+                ${!isEditing ? `<form class="space-y-4"><input type="hidden" name="childId" value="${child.id}"><div><label class="block text-sm font-medium text-gray-300">Medication</label><input type="text" name="what" required class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none ${colorTheme.ring} ${colorTheme.border}" placeholder="e.g., Tylenol"></div><div><label class="block text-sm font-medium text-gray-300">Quantity</label><input type="text" name="howMuch" required class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none ${colorTheme.ring} ${colorTheme.border}" placeholder="e.g., 5 ml"></div><div><label class="block text-sm font-medium text-gray-300">When?</label><div class="flex items-center gap-2 mt-1"><input type="time" name="when" required class="block w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none ${colorTheme.ring} ${colorTheme.border}"><button type="button" data-action="setNow" class="bg-cyan-600 hover:bg-cyan-700 text-white font-semibold py-2 px-4 rounded-md text-sm whitespace-nowrap">Now</button></div></div><button type="submit" class="w-full ${colorTheme.bg} ${colorTheme.hoverBg} text-white font-bold py-2 px-4 rounded-lg transform hover:scale-105">Log Medication</button></form><div class="mt-8 flex-grow flex flex-col"><div class="flex justify-between items-center"><h3 class="text-xl font-semibold text-gray-200">Log History</h3><button data-action="clearLog" class="text-sm bg-gray-700 hover:bg-red-600 text-white font-semibold py-1 px-3 rounded-md">Clear Log</button></div><ul class="log-list mt-4 space-y-3 max-h-60 overflow-y-auto pr-2 flex-grow"></ul></div>` : ''}
             </div>`;
         }
 
@@ -307,7 +307,14 @@
                         const logRef = doc(db, 'users', userId, 'logs', childId, 'entries', logId);
                         await updateDoc(logRef, { what, howMuch, when });
                         state.editingLogId = null;
-                        // The onSnapshot listener will automatically re-render the updated log.
+
+                        // Manually update the log in the local state to avoid flicker
+                        const logIndex = childToUpdate.logs.findIndex(l => l.id === logId);
+                        if (logIndex > -1) {
+                            childToUpdate.logs[logIndex] = { ...childToUpdate.logs[logIndex], what, howMuch, when };
+                        }
+
+                        renderLogs(childId, childToUpdate.logs);
                         break;
                 }
                 return; // Stop further processing for log actions
@@ -380,7 +387,7 @@
                         <li class="bg-gray-700 p-3 rounded-lg border-l-4 ${availableColors[childColor].border}" data-log-id="${log.id}">
                             <div class="space-y-2">
                                 <input type="text" name="editWhat" value="${log.what}" class="block w-full bg-gray-600 border border-gray-500 rounded-md py-1 px-2 text-white" placeholder="Medication">
-                                <input type="number" name="editHowMuch" value="${log.howMuch}" class="block w-full bg-gray-600 border border-gray-500 rounded-md py-1 px-2 text-white" placeholder="Quantity">
+                                <input type="text" name="editHowMuch" value="${log.howMuch}" class="block w-full bg-gray-600 border border-gray-500 rounded-md py-1 px-2 text-white" placeholder="Quantity">
                                 <input type="time" name="editWhen" value="${log.when}" class="block w-full bg-gray-600 border border-gray-500 rounded-md py-1 px-2 text-white">
                                 <div class="flex justify-end gap-2 pt-1">
                                     <button data-action="cancelEditLog" class="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-1 px-3 rounded-md text-sm">Cancel</button>
@@ -395,7 +402,7 @@
                         <li class="bg-gray-700 p-3 rounded-lg border-l-4 ${availableColors[childColor].border}" data-log-id="${log.id}">
                             <div class="flex justify-between items-start">
                                 <div>
-                                    <p class="font-bold text-lg">${log.what} - ${log.howMuch}ml</p>
+                                    <p class="font-bold text-lg">${log.what} - ${log.howMuch}</p>
                                     <p class="text-sm text-gray-400">${log.date} at ${log.when} <span class="text-gray-500 ml-2">(${timeAgo(log.timestamp)})</span></p>
                                 </div>
                                 <div class="flex gap-2 items-center">
