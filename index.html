@@ -98,7 +98,8 @@
         let state = {
             children: [],
             modal: { isOpen: false, type: null, targetId: null, message: '' },
-            listeners: {} // To store unsubscribe functions for Firestore listeners
+            listeners: {}, // To store unsubscribe functions for Firestore listeners
+            editingLogId: null
         };
 
         const availableColors = {
@@ -261,8 +262,11 @@
                     if (state.listeners[child.id]) state.listeners[child.id](); // Unsubscribe from old listener first
                     const logsRef = collection(db, 'users', userId, 'logs', child.id, 'entries');
                     state.listeners[child.id] = onSnapshot(query(logsRef, orderBy('timestamp', 'desc')), snapshot => {
-                        const logs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                        renderLogs(child.id, logs);
+                        const childIndex = state.children.findIndex(c => c.id === child.id);
+                        if (childIndex > -1) {
+                            state.children[childIndex].logs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                            renderLogs(child.id, state.children[childIndex].logs);
+                        }
                     });
                 }
                 cardElement.addEventListener('click', handleCardAction);
@@ -273,10 +277,43 @@
         async function handleCardAction(e) {
             const actionTarget = e.target.closest('button, .color-swatch');
             if (!actionTarget) return;
+
             const action = actionTarget.dataset.action;
             const childId = e.currentTarget.id;
             const child = state.children.find(c => c.id === childId);
 
+            // Handle log-specific actions
+            if (action === 'editLog' || action === 'deleteLog' || action === 'saveLog' || action === 'cancelEditLog') {
+                const logLi = actionTarget.closest('li[data-log-id]');
+                const logId = logLi.dataset.logId;
+                const childToUpdate = state.children.find(c => c.id === childId);
+
+                switch (action) {
+                    case 'deleteLog':
+                        showModal('deleteLog', { childId, logId }, `Are you sure you want to delete this log entry?`);
+                        break;
+                    case 'editLog':
+                        state.editingLogId = logId;
+                        renderLogs(childId, childToUpdate.logs);
+                        break;
+                    case 'cancelEditLog':
+                        state.editingLogId = null;
+                        renderLogs(childId, childToUpdate.logs);
+                        break;
+                    case 'saveLog':
+                        const what = logLi.querySelector('[name="editWhat"]').value;
+                        const howMuch = logLi.querySelector('[name="editHowMuch"]').value;
+                        const when = logLi.querySelector('[name="editWhen"]').value;
+                        const logRef = doc(db, 'users', userId, 'logs', childId, 'entries', logId);
+                        await updateDoc(logRef, { what, howMuch, when });
+                        state.editingLogId = null;
+                        // The onSnapshot listener will automatically re-render the updated log.
+                        break;
+                }
+                return; // Stop further processing for log actions
+            }
+
+            // Handle card actions
             if (!action) {
                 const color = actionTarget.dataset.color;
                 if(color && child.isEditing) {
@@ -332,9 +369,44 @@
             const logUl = document.querySelector(`#${childId} .log-list`);
             if (!logUl) return;
             logUl.innerHTML = '';
-            const childColor = state.children.find(c => c.id === childId)?.color || 'pink';
+            const child = state.children.find(c => c.id === childId);
+            const childColor = child?.color || 'pink';
+
             logs.forEach(log => {
-                logUl.innerHTML += `<li class="bg-gray-700 p-3 rounded-lg border-l-4 ${availableColors[childColor].border}"><div><p class="font-bold text-lg">${log.what} - ${log.howMuch}ml</p><p class="text-sm text-gray-400">${log.date} at ${log.when} <span class="text-gray-500 ml-2">(${timeAgo(log.timestamp)})</span></p></div></li>`;
+                let logHTML;
+                if (state.editingLogId === log.id) {
+                    // Editing UI
+                    logHTML = `
+                        <li class="bg-gray-700 p-3 rounded-lg border-l-4 ${availableColors[childColor].border}" data-log-id="${log.id}">
+                            <div class="space-y-2">
+                                <input type="text" name="editWhat" value="${log.what}" class="block w-full bg-gray-600 border border-gray-500 rounded-md py-1 px-2 text-white" placeholder="Medication">
+                                <input type="number" name="editHowMuch" value="${log.howMuch}" class="block w-full bg-gray-600 border border-gray-500 rounded-md py-1 px-2 text-white" placeholder="Quantity">
+                                <input type="time" name="editWhen" value="${log.when}" class="block w-full bg-gray-600 border border-gray-500 rounded-md py-1 px-2 text-white">
+                                <div class="flex justify-end gap-2 pt-1">
+                                    <button data-action="cancelEditLog" class="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-1 px-3 rounded-md text-sm">Cancel</button>
+                                    <button data-action="saveLog" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-1 px-3 rounded-md text-sm">Save</button>
+                                </div>
+                            </div>
+                        </li>
+                    `;
+                } else {
+                    // Display UI
+                    logHTML = `
+                        <li class="bg-gray-700 p-3 rounded-lg border-l-4 ${availableColors[childColor].border}" data-log-id="${log.id}">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="font-bold text-lg">${log.what} - ${log.howMuch}ml</p>
+                                    <p class="text-sm text-gray-400">${log.date} at ${log.when} <span class="text-gray-500 ml-2">(${timeAgo(log.timestamp)})</span></p>
+                                </div>
+                                <div class="flex gap-2 items-center">
+                                    <button data-action="editLog" class="text-gray-400 hover:text-white p-1"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg></button>
+                                    <button data-action="deleteLog" class="text-gray-400 hover:text-red-500 p-1"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
+                                </div>
+                            </div>
+                        </li>
+                    `;
+                }
+                logUl.innerHTML += logHTML;
             });
         }
 
@@ -371,17 +443,25 @@
 
         async function confirmModalAction() {
             const { type, targetId } = state.modal;
-            const batch = writeBatch(db);
-            if (type === 'clearLog' || type === 'deleteCard') {
-                const logsRef = collection(db, 'users', userId, 'logs', targetId, 'entries');
-                const logsSnapshot = await getDocs(logsRef);
-                logsSnapshot.forEach(doc => batch.delete(doc.ref));
+
+            if (type === 'deleteLog') {
+                const { childId, logId } = targetId;
+                const logRef = doc(db, 'users', userId, 'logs', childId, 'entries', logId);
+                await deleteDoc(logRef);
+            } else {
+                const batch = writeBatch(db);
+                if (type === 'clearLog' || type === 'deleteCard') {
+                    const logsRef = collection(db, 'users', userId, 'logs', targetId, 'entries');
+                    const logsSnapshot = await getDocs(logsRef);
+                    logsSnapshot.forEach(doc => batch.delete(doc.ref));
+                }
+                if (type === 'deleteCard') {
+                    const childRef = doc(db, 'users', userId, 'children', targetId);
+                    batch.delete(childRef);
+                }
+                await batch.commit();
             }
-            if (type === 'deleteCard') {
-                const childRef = doc(db, 'users', userId, 'children', targetId);
-                batch.delete(childRef);
-            }
-            await batch.commit();
+
             hideModal();
         }
         
