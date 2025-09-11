@@ -393,12 +393,13 @@
                     `;
                 } else {
                     // Display UI
+                    const displayDate = log.timestamp.toDate().toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
                     logHTML = `
                         <li class="bg-gray-700 p-3 rounded-lg border-l-4 ${availableColors[childColor].border}" data-log-id="${log.id}">
                             <div class="flex justify-between items-start">
                                 <div>
                                     <p class="font-bold text-lg">${log.what} - ${log.howMuch}</p>
-                                    <p class="text-sm text-gray-400">${log.date} at ${log.when} <span class="text-gray-500 ml-2">(${timeAgo(log.timestamp)})</span></p>
+                                    <p class="text-sm text-gray-400">${displayDate} at ${log.when} <span class="text-gray-500 ml-2">(${timeAgo(log.timestamp)})</span></p>
                                 </div>
                                 <div class="flex gap-2 items-center">
                                     <button data-action="editLog" class="text-gray-400 hover:text-white p-1"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg></button>
