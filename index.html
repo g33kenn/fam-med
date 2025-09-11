@@ -221,12 +221,7 @@
             const past = timestamp.toDate();
             const seconds = Math.floor((now - past) / 1000);
 
-            let interval = seconds / 31536000; // year
-            if (interval > 1) {
-                const value = Math.floor(interval);
-                return `${value} year${value > 1 ? 's' : ''} ago`;
-            }
-            interval = seconds / 2592000; // month
+            let interval = seconds / 2592000; // month
             if (interval > 1) {
                 const value = Math.floor(interval);
                 return `${value} month${value > 1 ? 's' : ''} ago`;
