@@ -352,7 +352,8 @@
         
         async function handleFormSubmit(e) {
             e.preventDefault();
-            const formData = new FormData(e.currentTarget);
+            const form = e.currentTarget;
+            const formData = new FormData(form);
             const childId = formData.get('childId');
             const now = new Date();
             const newLog = {
@@ -364,7 +365,10 @@
             };
             const logsRef = collection(db, 'users', userId, 'logs', childId, 'entries');
             await addDoc(logsRef, newLog);
-            e.currentTarget.reset();
+
+            form.querySelector('[name="what"]').value = '';
+            form.querySelector('[name="howMuch"]').value = '';
+            form.querySelector('[name="when"]').value = '';
         }
 
         function renderLogs(childId, logs) {
