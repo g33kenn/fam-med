@@ -285,7 +285,14 @@
 
                 switch (action) {
                     case 'deleteLog':
-                        showModal('deleteLog', { childId, logId }, `Are you sure you want to delete this log entry?`);
+                        const logToDelete = childToUpdate.logs.find(l => l.id === logId);
+                        if (logToDelete) {
+                            const message = `Are you sure you want to delete the entry for <strong>${logToDelete.what}</strong> (${logToDelete.howMuch})?`;
+                            showModal('deleteLog', { childId, logId }, message, 'Delete');
+                        } else {
+                            // Fallback for safety, though this case should not be reached in normal operation
+                            showModal('deleteLog', { childId, logId }, `Are you sure you want to delete this log entry?`, 'Delete');
+                        }
                         break;
                     case 'editLog':
                         state.editingLogId = logId;
@@ -432,9 +439,10 @@
         });
 
         // --- MODAL LOGIC ---
-        function showModal(type, targetId, message) {
+        function showModal(type, targetId, message, confirmText = 'Confirm') {
             state.modal = { isOpen: true, type, targetId, message };
             modalText.innerHTML = state.modal.message;
+            modalConfirmBtn.textContent = confirmText;
             modalEl.classList.remove('hidden');
             setTimeout(() => { modalEl.style.opacity = '1'; modalContent.style.transform = 'scale(1)'; }, 10);
         }
@@ -445,6 +453,7 @@
             setTimeout(() => {
                 modalEl.classList.add('hidden');
                 state.modal = { isOpen: false, type: null, targetId: null, message: '' };
+                modalConfirmBtn.textContent = 'Confirm'; // Reset button text
             }, 300);
         }
 
