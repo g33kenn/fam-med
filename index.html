@@ -236,9 +236,9 @@
             if (interval > 1) {
                 const hours = Math.floor(interval);
                 const minutes = Math.floor((seconds % 3600) / 60);
-                let result = `${hours} hour${hours > 1 ? 's' : ''}`;
+                let result = `${hours}h`;
                 if (minutes > 0) {
-                    result += ` and ${minutes} minute${minutes > 1 ? 's' : ''}`;
+                    result += `${minutes.toString().padStart(2, '0')}`;
                 }
                 result += ' ago';
                 return result;
