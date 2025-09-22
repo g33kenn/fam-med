@@ -181,8 +181,37 @@
         // --- APP INITIALIZATION & CLEANUP ---
         function initializeAppForUser() {
             const childrenRef = collection(db, 'users', userId, 'children');
-            state.listeners['children'] = onSnapshot(query(childrenRef), snapshot => {
-                state.children = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            state.listeners['children'] = onSnapshot(query(childrenRef), async snapshot => {
+                const today = new Date();
+                const batch = writeBatch(db);
+                let needsUpdate = false;
+
+                const processedChildren = snapshot.docs.map(doc => {
+                    const child = { id: doc.id, ...doc.data() };
+                    const lastUpdate = child.lastWaterUpdate;
+
+                    if (child.waterIntake === undefined) child.waterIntake = 0;
+                    if (child.yesterdayWaterIntake === undefined) child.yesterdayWaterIntake = 0;
+
+                    if (lastUpdate && !isSameDay(lastUpdate, today)) {
+                        const childRef = doc(db, 'users', userId, 'children', child.id);
+                        batch.update(childRef, {
+                            yesterdayWaterIntake: child.waterIntake,
+                            waterIntake: 0,
+                            lastWaterUpdate: new Date()
+                        });
+                        needsUpdate = true;
+                        child.yesterdayWaterIntake = child.waterIntake;
+                        child.waterIntake = 0;
+                    }
+                    return child;
+                });
+
+                if (needsUpdate) {
+                    await batch.commit();
+                }
+
+                state.children = processedChildren;
                 render();
             });
         }
@@ -201,6 +230,35 @@
             const colorSwatchesHTML = Object.keys(availableColors).map(colorKey => `
                 <div class="color-swatch w-8 h-8 rounded-full cursor-pointer ${availableColors[colorKey].bg.replace('bg-','border-2 border-')} ${child.color === colorKey ? 'selected' : ''}" data-color="${colorKey}" style="background-color: #${{'pink':'ec4899','blue':'3b82f6','yellow':'eab308','green':'22c55e','purple':'a855f7','indigo':'6366f1'}[colorKey]}"></div>`).join('');
 
+            const waterTrackerHTML = `
+                <!-- Water Intake Tracker -->
+                <div class="water-tracker mt-8">
+                    <h3 class="text-xl font-semibold text-gray-200 mb-4 text-center">Water Intake</h3>
+                    <div class="flex items-center justify-center gap-4">
+                        <!-- Water Bar -->
+                        <div class="relative w-20 h-48 bg-gray-700 rounded-full overflow-hidden border-2 border-gray-600">
+                            <div class="water-level absolute bottom-0 w-full bg-cyan-500 transition-all duration-500 ease-in-out" style="height: ${Math.min(100, ((child.waterIntake || 0) / 2000) * 100)}%;"></div>
+                            <div class="absolute inset-0 flex items-center justify-center">
+                                <span class="water-percentage text-white font-bold text-lg">${Math.round(((child.waterIntake || 0) / 2000) * 100)}%</span>
+                            </div>
+                        </div>
+                        <!-- Controls and Info -->
+                        <div class="flex flex-col gap-3 items-center">
+                            <div class="text-center">
+                                <span class="water-intake-display text-3xl font-bold text-cyan-400">${(child.waterIntake || 0) >= 1000 ? ((child.waterIntake || 0) / 1000).toFixed(1) : (child.waterIntake || 0)}</span>
+                                <span class="text-gray-400">${(child.waterIntake || 0) >= 1000 ? 'L' : 'ml'}</span>
+                            </div>
+                            <div class="flex gap-3">
+                                <button data-action="removeWater" class="bg-gray-600 hover:bg-gray-700 text-white font-bold h-12 w-12 rounded-full flex items-center justify-center text-3xl transition transform hover:scale-110">-</button>
+                                <button data-action="addWater" class="bg-cyan-600 hover:bg-cyan-700 text-white font-bold h-12 w-12 rounded-full flex items-center justify-center text-3xl transition transform hover:scale-110">+</button>
+                            </div>
+                            <div class="text-sm text-gray-400 mt-2">Goal: 2L</div>
+                            <div class="text-sm text-gray-400">Yesterday: <span class="yesterday-water-intake">${child.yesterdayWaterIntake || 0} ml</span></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
             return `<div class="bg-gray-800 rounded-2xl shadow-lg p-6 border border-gray-700 flex flex-col" id="${child.id}">
                 <div class="relative">
                     <div class="absolute top-0 right-0 flex gap-2">
@@ -209,8 +267,17 @@
                     </div>
                     ${isEditing ? `<input type="text" value="${child.name}" class="text-3xl font-bold text-center w-full bg-gray-700 rounded-md p-1 mb-2 ${colorTheme.text}"><div class="flex justify-center gap-3 my-4">${colorSwatchesHTML}</div><button data-action="save" class="w-full ${colorTheme.bg} ${colorTheme.hoverBg} text-white font-bold py-2 px-4 rounded-lg">Save Changes</button>` : `<h2 class="text-3xl font-bold text-center mb-6 ${colorTheme.text}">${child.name}</h2>`}
                 </div>
-                ${!isEditing ? `<form class="space-y-4"><input type="hidden" name="childId" value="${child.id}"><div><label class="block text-sm font-medium text-gray-300">What?</label><input type="text" name="what" required class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none ${colorTheme.ring} ${colorTheme.border}" placeholder="ex: Tylenol" list="what-suggestions-${child.id}"><datalist id="what-suggestions-${child.id}"></datalist></div><div><label class="block text-sm font-medium text-gray-300">Quantity</label><input type="text" name="howMuch" required class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none ${colorTheme.ring} ${colorTheme.border}" placeholder="ex: 5 ml" list="howMuch-suggestions-${child.id}"><datalist id="howMuch-suggestions-${child.id}"></datalist></div><div><label class="block text-sm font-medium text-gray-300">When?</label><div class="flex items-center gap-2 mt-1"><input type="datetime-local" name="when" required class="block w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none ${colorTheme.ring} ${colorTheme.border}"><button type="button" data-action="setNow" class="bg-cyan-600 hover:bg-cyan-700 text-white font-semibold py-2 px-4 rounded-md text-sm whitespace-nowrap">Now</button></div></div><button type="submit" class="w-full ${colorTheme.bg} ${colorTheme.hoverBg} text-white font-bold py-2 px-4 rounded-lg transform hover:scale-105">Log Medication</button></form><div class="mt-8 flex-grow flex flex-col"><div class="flex justify-between items-center"><h3 class="text-xl font-semibold text-gray-200">Log History</h3><button data-action="clearLog" class="text-sm bg-gray-700 hover:bg-red-600 text-white font-semibold py-1 px-3 rounded-md">Reset for Today</button></div><ul class="log-list mt-4 space-y-3 max-h-60 overflow-y-auto pr-2 flex-grow"></ul></div>` : ''}
+                ${!isEditing ? `<form class="space-y-4"><input type="hidden" name="childId" value="${child.id}"><div><label class="block text-sm font-medium text-gray-300">What?</label><input type="text" name="what" required class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none ${colorTheme.ring} ${colorTheme.border}" placeholder="ex: Tylenol" list="what-suggestions-${child.id}"><datalist id="what-suggestions-${child.id}"></datalist></div><div><label class="block text-sm font-medium text-gray-300">Quantity</label><input type="text" name="howMuch" required class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none ${colorTheme.ring} ${colorTheme.border}" placeholder="ex: 5 ml" list="howMuch-suggestions-${child.id}"><datalist id="howMuch-suggestions-${child.id}"></datalist></div><div><label class="block text-sm font-medium text-gray-300">When?</label><div class="flex items-center gap-2 mt-1"><input type="datetime-local" name="when" required class="block w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none ${colorTheme.ring} ${colorTheme.border}"><button type="button" data-action="setNow" class="bg-cyan-600 hover:bg-cyan-700 text-white font-semibold py-2 px-4 rounded-md text-sm whitespace-nowrap">Now</button></div></div><button type="submit" class="w-full ${colorTheme.bg} ${colorTheme.hoverBg} text-white font-bold py-2 px-4 rounded-lg transform hover:scale-105">Log Medication</button></form>${waterTrackerHTML}<div class="mt-8 flex-grow flex flex-col"><div class="flex justify-between items-center"><h3 class="text-xl font-semibold text-gray-200">Log History</h3><button data-action="clearLog" class="text-sm bg-gray-700 hover:bg-red-600 text-white font-semibold py-1 px-3 rounded-md">Reset for Today</button></div><ul class="log-list mt-4 space-y-3 max-h-60 overflow-y-auto pr-2 flex-grow"></ul></div>` : ''}
             </div>`;
+        }
+
+        function isSameDay(d1, d2) {
+            if (!d1 || !d2) return false;
+            const date1 = d1.toDate ? d1.toDate() : new Date(d1);
+            const date2 = d2.toDate ? d2.toDate() : new Date(d2);
+            return date1.getFullYear() === date2.getFullYear() &&
+                   date1.getMonth() === date2.getMonth() &&
+                   date1.getDate() === date2.getDate();
         }
 
         function timeAgo(timestamp) {
@@ -353,6 +420,21 @@
             }
             
             switch(action) {
+                case 'addWater': {
+                    const currentIntake = child.waterIntake || 0;
+                    const newIntake = currentIntake + 250;
+                    const childRef = doc(db, 'users', userId, 'children', childId);
+                    await updateDoc(childRef, { waterIntake: newIntake, lastWaterUpdate: new Date() });
+                    break;
+                }
+                case 'removeWater': {
+                    const currentIntake = child.waterIntake || 0;
+                    const newIntake = Math.max(0, currentIntake - 250);
+                    if (newIntake === currentIntake) break; // Do nothing if already at 0
+                    const childRef = doc(db, 'users', userId, 'children', childId);
+                    await updateDoc(childRef, { waterIntake: newIntake, lastWaterUpdate: new Date() });
+                    break;
+                }
                 case 'edit':
                     await updateDoc(doc(db, 'users', userId, 'children', childId), { isEditing: true });
                     break;
@@ -480,7 +562,10 @@
                 await addDoc(collection(db, 'users', userId, 'children'), {
                     name: newName.trim(),
                     color: randomColor,
-                    isEditing: false
+                    isEditing: false,
+                    waterIntake: 0,
+                    yesterdayWaterIntake: 0,
+                    lastWaterUpdate: new Date()
                 });
             }
         });
