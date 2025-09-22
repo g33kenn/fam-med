@@ -234,8 +234,14 @@
             }
             interval = seconds / 3600; // hour
             if (interval > 1) {
-                const value = Math.floor(interval);
-                return `${value} hour${value > 1 ? 's' : ''} ago`;
+                const hours = Math.floor(interval);
+                const minutes = Math.floor((seconds % 3600) / 60);
+                let result = `${hours} hour${hours > 1 ? 's' : ''}`;
+                if (minutes > 0) {
+                    result += ` and ${minutes} minute${minutes > 1 ? 's' : ''}`;
+                }
+                result += ' ago';
+                return result;
             }
             interval = seconds / 60; // minute
             if (interval > 1) {
