@@ -305,8 +305,8 @@
                         renderLogs(childId, childToUpdate.logs);
                         break;
                     case 'saveLog':
-                        const what = logLi.querySelector('[name="editWhat"]').value;
-                        const howMuch = logLi.querySelector('[name="editHowMuch"]').value;
+                        const what = logLi.querySelector('[name="editWhat"]').value.trim();
+                        const howMuch = logLi.querySelector('[name="editHowMuch"]').value.trim();
                         const when = logLi.querySelector('[name="editWhen"]').value;
                         const logRef = doc(db, 'users', userId, 'logs', childId, 'entries', logId);
                         await updateDoc(logRef, { what, howMuch, when });
@@ -366,8 +366,8 @@
             const childId = formData.get('childId');
             const now = new Date();
             const newLog = {
-                what: formData.get('what'),
-                howMuch: formData.get('howMuch'),
+                what: formData.get('what').trim(),
+                howMuch: formData.get('howMuch').trim(),
                 when: formData.get('when'),
                 date: now.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
                 timestamp: now
@@ -432,8 +432,8 @@
 
             if (!whatDatalist || !howMuchDatalist) return;
 
-            const whatSuggestions = new Set(logs.map(log => log.what));
-            const howMuchSuggestions = new Set(logs.map(log => log.howMuch));
+            const whatSuggestions = new Set(logs.map(log => log.what ? log.what.trim() : log.what));
+            const howMuchSuggestions = new Set(logs.map(log => log.howMuch ? log.howMuch.trim() : log.howMuch));
 
             whatDatalist.innerHTML = [...whatSuggestions].map(suggestion => `<option value="${suggestion}"></option>`).join('');
             howMuchDatalist.innerHTML = [...howMuchSuggestions].map(suggestion => `<option value="${suggestion}"></option>`).join('');
