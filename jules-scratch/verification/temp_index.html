@@ -57,7 +57,7 @@
             </div>
             <button id="sign-out-btn" class="bg-gray-700 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-300">Sign Out</button>
         </div>
-        
+
         <!-- Clock Display -->
         <div class="text-center mb-8">
             <h1 class="text-2xl md:text-4xl font-bold text-cyan-400">Medication Tracker</h1>
@@ -89,7 +89,7 @@
         </div>
     </div>
 
-    <script type="module">
+    <script >
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, onSnapshot, addDoc, doc, updateDoc, deleteDoc, query, orderBy, getDocs, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
@@ -120,7 +120,7 @@
           messagingSenderId: "602148649143",
           appId: "1:602148649143:web:8f582cbec9ea92f505b532"
         };
-        
+
         let app, db, auth, userId;
         try {
             app = initializeApp(firebaseConfig);
@@ -276,7 +276,7 @@
                 cardElement.querySelector('form')?.addEventListener('submit', handleFormSubmit);
             });
         }
-        
+
         async function handleCardAction(e) {
             const actionTarget = e.target.closest('button, .color-swatch');
             if (!actionTarget) return;
@@ -351,7 +351,7 @@
                 }
                 return;
             }
-            
+
             switch(action) {
                 case 'edit':
                     await updateDoc(doc(db, 'users', userId, 'children', childId), { isEditing: true });
@@ -379,7 +379,7 @@
                     break;
             }
         }
-        
+
         async function handleFormSubmit(e) {
             e.preventDefault();
             const form = e.currentTarget;
@@ -542,10 +542,9 @@
 
             hideModal();
         }
-        
+
         modalCancelBtn.addEventListener('click', hideModal);
         modalConfirmBtn.addEventListener('click', confirmModalAction);
     </script>
 </body>
 </html>
-
